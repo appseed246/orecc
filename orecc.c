@@ -57,14 +57,23 @@ struct Token
 // 現在着目しているトークン
 Token *token;
 
+// 入力プログラム文字列
+char *user_input;
+
 /**
  * @brief エラーを報告する。printfと同じ引数を取る。
+ * @param loc エラーがある文字の位置を示すポインタ
  * @param fmt フォーマット
  */
-void error(char *fmt, ...)
+void error_at(char *loc, char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, ""); // pos個の空白を出力
+    fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
@@ -94,7 +103,7 @@ void expect(char op)
 {
     if (token->kind != TK_RESERVED || token->str[0] != op)
     {
-        error("'%c'ではありません", op);
+        error_at(token->str, "'%c'ではありません", op);
     }
     token = token->next;
 }
@@ -107,7 +116,7 @@ int expect_number()
 {
     if (token->kind != TK_NUM)
     {
-        error("数値ではありません。");
+        error_at(token->str, "数値ではありません。");
     }
     int val = token->val;
     token = token->next;
@@ -166,7 +175,7 @@ Token *tokenize(char *p)
             continue;
         }
 
-        error("トークナイズできません");
+        error_at(p, "トークナイズできません");
     }
 
     new_token(TK_EOF, cur, p);
@@ -177,9 +186,12 @@ int main(int argc, char **argv)
 {
     if (argc != 2)
     {
-        error("引数の個数が正しくありません。");
+        error_at("", "引数の個数が正しくありません。");
         return 1;
     }
+
+    // 入力プログラムを保持する。
+    user_input = argv[1];
 
     // トークナイズする
     token = tokenize(argv[1]);
