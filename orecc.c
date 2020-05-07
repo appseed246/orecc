@@ -52,6 +52,11 @@ struct Token
      * @brief トークン文字列
      */
     char *str;
+
+    /**
+     * @brief トークンの長さ
+     */
+    int len;
 };
 
 /**
@@ -83,6 +88,26 @@ typedef enum
      * @brief 整数
      */
     ND_NUM,
+
+    /**
+     * @brief 等価(==)
+     */
+    ND_EQ,
+
+    /**
+     * @brief 不等価(!=)
+     */
+    ND_NE,
+
+    /**
+     * @brief より小さい(<)
+     */
+    ND_LT,
+
+    /**
+     * @brief より大きい(<=)
+     */
+    ND_LE
 } NodeKind;
 
 typedef struct Node Node;
@@ -114,10 +139,13 @@ struct Node
 };
 
 // 関数ヘッダー
-Node *primary();
+Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
-Node *primary();
 Node *unary();
+Node *primary();
 
 // 現在着目しているトークン
 Token *token;
@@ -149,9 +177,9 @@ void error_at(char *loc, char *fmt, ...)
  * @param op 期待するトークン文字列
  * @return 期待した文字列である場合true, それ以外の場合はfalse
  */
-bool consume(char op)
+bool consume(char *op)
 {
-    if (token->kind != TK_RESERVED || token->str[0] != op)
+    if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
     {
         return false;
     }
@@ -164,9 +192,9 @@ bool consume(char op)
  * それ以外の場合はエラーを報告する。
  * @param op 期待するトークン文字列
  */
-void expect(char op)
+void expect(char *op)
 {
-    if (token->kind != TK_RESERVED || token->str[0] != op)
+    if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
     {
         error_at(token->str, "'%c'ではありません", op);
     }
@@ -197,18 +225,19 @@ bool at_eof()
     return token->kind == TK_EOF;
 }
 
-Token *new_token(TokenKind kind, Token *cur, char *str)
+Token *new_token(TokenKind kind, Token *cur, char *str, int len)
 {
     Token *tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
+    tok->len = len;
     cur->next = tok;
     return tok;
 }
 
 /**
  * @brief 文字列をトークン構造体に変換する
- * 
+ *
  * @param p トークン構造体に変換する文字列のポインタ
  * @return トークン構造体のポインタ
  */
@@ -227,15 +256,23 @@ Token *tokenize(char *p)
             continue;
         }
 
+        // 2文字記号の判定
+        if (strncmp("==", p, 2) == 0 || strncmp("!=", p, 2) == 0 || strncmp(">=", p, 2) == 0 || strncmp("<=", p, 2) == 0)
+        {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+            continue;
+        }
+
         if (strchr("+-*/()", *p))
         {
-            cur = new_token(TK_RESERVED, cur, p++);
+            cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
 
         if (isdigit(*p))
         {
-            cur = new_token(TK_NUM, cur, p);
+            cur = new_token(TK_NUM, cur, p, 1);
             cur->val = strtol(p, &p, 10);
             continue;
         }
@@ -243,7 +280,7 @@ Token *tokenize(char *p)
         error_at(p, "トークナイズできません");
     }
 
-    new_token(TK_EOF, cur, p);
+    new_token(TK_EOF, cur, p, 1);
     return head.next;
 }
 
@@ -266,15 +303,62 @@ Node *new_node_num(int val)
 
 Node *expr()
 {
+    return equality();
+}
+
+Node *equality()
+{
+    Node *node = relational();
+
+    for (;;)
+    {
+        if (consume("=="))
+        {
+            node = new_node(ND_EQ, node, relational());
+        }
+        else if (consume("!="))
+        {
+            node = new_node(ND_NE, node, relational());
+        }
+        else
+        {
+            return node;
+        }
+    }
+}
+
+Node *relational()
+{
+    Node *node = add();
+
+    for (;;)
+    {
+        if (consume("<") || consume(">"))
+        {
+            node = new_node(ND_LT, node, add());
+        }
+        else if (consume("<=") || consume(">="))
+        {
+            node = new_node(ND_LT, node, add());
+        }
+        else
+        {
+            return node;
+        }
+    }
+}
+
+Node *add()
+{
     Node *node = mul();
 
     for (;;)
     {
-        if (consume('+'))
+        if (consume("+"))
         {
             node = new_node(ND_ADD, node, mul());
         }
-        else if (consume('-'))
+        else if (consume("-"))
         {
             node = new_node(ND_SUB, node, mul());
         }
@@ -291,11 +375,11 @@ Node *mul()
 
     for (;;)
     {
-        if (consume('*'))
+        if (consume("*"))
         {
             node = new_node(ND_MUL, node, unary());
         }
-        else if (consume('/'))
+        else if (consume("/"))
         {
             node = new_node(ND_DIV, node, unary());
         }
@@ -308,11 +392,11 @@ Node *mul()
 
 Node *unary()
 {
-    if (consume('+'))
+    if (consume("+"))
     {
         return primary();
     }
-    if (consume('-'))
+    if (consume("-"))
     {
         return new_node(ND_SUB, new_node_num(0), primary());
     }
@@ -321,10 +405,10 @@ Node *unary()
 
 Node *primary()
 {
-    if (consume('('))
+    if (consume("("))
     {
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
 
@@ -359,6 +443,16 @@ void gen(Node *node)
     case ND_DIV:
         printf("    cqo\n");
         printf("    idiv rdi\n");
+        break;
+    case ND_EQ:
+        printf("    cmp rax, rdi\n");
+        printf("    sete al\n");
+        printf("    movzb rax, al\n");
+        break;
+    case ND_NE:
+        printf("    cmp rax, rdi\n");
+        printf("    setne al\n");
+        printf("    movzb rax, al\n");
         break;
     }
 

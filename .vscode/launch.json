@@ -11,7 +11,7 @@
             "program": "${fileDirname}/${fileBasenameNoExtension}",
             "args": [
                 // test case
-                "5+6*7"
+                "5+20-4"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
