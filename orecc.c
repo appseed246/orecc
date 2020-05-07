@@ -235,6 +235,11 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len)
     return tok;
 }
 
+bool startswith(char *p, char *q)
+{
+    return memcmp(p, q, strlen(q)) == 0;
+}
+
 /**
  * @brief 文字列をトークン構造体に変換する
  *
@@ -257,7 +262,7 @@ Token *tokenize(char *p)
         }
 
         // 2文字記号の判定
-        if (strncmp("==", p, 2) == 0 || strncmp("!=", p, 2) == 0 || strncmp(">=", p, 2) == 0 || strncmp("<=", p, 2) == 0)
+        if (startswith(p, "==") || startswith(p, "!=") || startswith(p, ">=") || startswith(p, "<="))
         {
             cur = new_token(TK_RESERVED, cur, p, 2);
             p += 2;
@@ -273,7 +278,9 @@ Token *tokenize(char *p)
         if (isdigit(*p))
         {
             cur = new_token(TK_NUM, cur, p, 1);
+            char *tmp = p;
             cur->val = strtol(p, &p, 10);
+            cur->len = p - tmp;
             continue;
         }
 
@@ -301,11 +308,13 @@ Node *new_node_num(int val)
     return node;
 }
 
+// expr = equality
 Node *expr()
 {
     return equality();
 }
 
+// equality = relational ("==" relational | "!=" relational)*
 Node *equality()
 {
     Node *node = relational();
@@ -327,6 +336,7 @@ Node *equality()
     }
 }
 
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 Node *relational()
 {
     Node *node = add();
@@ -356,6 +366,7 @@ Node *relational()
     }
 }
 
+// add = mul ("+" mul | "-" mul)*
 Node *add()
 {
     Node *node = mul();
@@ -377,6 +388,7 @@ Node *add()
     }
 }
 
+// mul = unary ("*" unary | "/" unary)*
 Node *mul()
 {
     Node *node = unary();
@@ -398,6 +410,7 @@ Node *mul()
     }
 }
 
+// unary = ("+" | "-")? primary
 Node *unary()
 {
     if (consume("+"))
@@ -411,6 +424,7 @@ Node *unary()
     return primary();
 }
 
+// primary = num | "(" expr ")"
 Node *primary()
 {
     if (consume("("))

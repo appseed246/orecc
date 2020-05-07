@@ -25,18 +25,25 @@ assert 15 '5*(9-6)'
 assert 4 '(3+5)/2'
 assert 2 '-3+5'
 assert 13 '+3+5*2'
+
 assert 1 " 3 == 3"
 assert 0 "1 == 2"
 assert 1 "3+1 == 2+2"
+
 assert 1 "1 != 2"
+assert 0 "2!=2"
+
 assert 1 "10 < 11"
 assert 0 "10 < 10"
 assert 1 "1*(2-2)+3 < (3+1)*1+2"
+
 assert 1 "2 > 1"
 assert 0 "1 > 1"
+
 assert 1 "2 <= 5"
 assert 1 "2 <= 2"
 assert 0 "(3*2) <= 1+1*3"
+
 assert 1 "55 >= 1"
 assert 1 "55 >= 55"
 assert 0 "1*(3+1) >= 5"
