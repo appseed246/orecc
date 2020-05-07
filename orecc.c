@@ -264,7 +264,7 @@ Token *tokenize(char *p)
             continue;
         }
 
-        if (strchr("+-*/()", *p))
+        if (strchr("+-*/()<>", *p))
         {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
@@ -333,13 +333,21 @@ Node *relational()
 
     for (;;)
     {
-        if (consume("<") || consume(">"))
+        if (consume("<"))
         {
             node = new_node(ND_LT, node, add());
         }
-        else if (consume("<=") || consume(">="))
+        else if (consume(">"))
         {
-            node = new_node(ND_LT, node, add());
+            node = new_node(ND_LT, add(), node);
+        }
+        else if (consume("<="))
+        {
+            node = new_node(ND_LE, node, add());
+        }
+        else if (consume(">="))
+        {
+            node = new_node(ND_LE, add(), node);
         }
         else
         {
@@ -452,6 +460,16 @@ void gen(Node *node)
     case ND_NE:
         printf("    cmp rax, rdi\n");
         printf("    setne al\n");
+        printf("    movzb rax, al\n");
+        break;
+    case ND_LT:
+        printf("    cmp rax, rdi\n");
+        printf("    setl al\n");
+        printf("    movzb rax, al\n");
+        break;
+    case ND_LE:
+        printf("    cmp rax, rdi\n");
+        printf("    setle al\n");
         printf("    movzb rax, al\n");
         break;
     }
