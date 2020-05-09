@@ -3,10 +3,11 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "gcc build active file",
+            "label": "build (compiler)",
             "command": "make",
             "args": [
-                "path=/workspaces/orecc/"
+                "clean",
+                "orecc"
             ],
         }
     ]
