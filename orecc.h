@@ -16,6 +16,11 @@ typedef enum
     TK_RESERVED,
 
     /**
+     * @brief 識別子
+     */
+    TK_IDENT,
+
+    /**
      * @brief 整数
      */
     TK_NUM,
@@ -89,6 +94,16 @@ typedef enum
     ND_NUM,
 
     /**
+     * @brief 代入(=)
+     */
+    ND_ASSIGN,
+
+    /**
+     * @brief ローカル変数
+     */
+    ND_LVAR,
+
+    /**
      * @brief 等価(==)
      */
     ND_EQ,
@@ -132,13 +147,24 @@ struct Node
     Node *rhs;
 
     /**
-     * @brief kindがND_NUMのときの数の値
+     * @brief 整数の値。kindがND_NUMの場合に使用。
      */
     int val;
+
+    /**
+     * @brief RBPからアクセス対象のローカル変数までのオフセット値。kindがND_LVARの場合に使用。
+     */
+    int offset;
 };
 
 /**
  * @brief エラーを報告する。printfと同じ引数を取る。
+ * @param fmt フォーマット
+ */
+void error(char *fmt, ...);
+
+/**
+ * @brief エラーが発生した文字を示し、エラー内容を報告する。printfと同じ引数を取る。
  * @param loc エラーがある文字の位置を示すポインタ
  * @param fmt フォーマット
  */
@@ -150,6 +176,12 @@ void error_at(char *loc, char *fmt, ...);
  * @return 期待した文字列である場合true, それ以外の場合はfalse
  */
 bool consume(char *op);
+
+/**
+ * @brief 次のトークンが変数であるかを判定する。
+ * @return 次のトークンが変数である場合現在のTokenのポインタ, それ以外の場合はNULLポインタ
+ */
+Token *consume_ident();
 
 /**
  * @brief 次のトークンが記号の場合のときには、トークンを1つよみすすめる。
@@ -219,7 +251,15 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
  */
 Node *new_node_num(int val);
 
-Node *expr();
+void *program();
+
+// 複数ステートメントを保持する領域
+extern Node *code[100];
+
+/**
+ * @brief 左辺値を評価する。
+ */
+void gen_lval(Node *node);
 
 /**
  * @brief 抽象構文木を元にアセンブリを出力する
