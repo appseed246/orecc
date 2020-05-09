@@ -4,16 +4,10 @@
         {
             "type": "shell",
             "label": "gcc build active file",
-            "command": "/usr/bin/gcc",
+            "command": "make",
             "args": [
-                "-g",
-                "${file}",
-                "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "path=/workspaces/orecc/"
             ],
-            "options": {
-                "cwd": "/usr/bin"
-            }
         }
     ]
 }

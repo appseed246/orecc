@@ -8,10 +8,10 @@
             "name": "debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${workspaceRoot}/orecc",
             "args": [
                 // test case
-                "5+20-4"
+                "0"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
