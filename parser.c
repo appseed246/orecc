@@ -1,5 +1,8 @@
 #include "orecc.h"
 
+// ローカル変数
+LVar *locals;
+
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
 {
     Node *node = calloc(1, sizeof(Node));
@@ -15,6 +18,18 @@ Node *new_node_num(int val)
     node->kind = ND_NUM;
     node->val = val;
     return node;
+}
+
+LVar *find_lvar(Token *tok)
+{
+    for (LVar *var = locals; var; var = var->next)
+    {
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+        {
+            return var;
+        }
+    }
+    return NULL;
 }
 
 void *program();
@@ -193,7 +208,23 @@ Node *primary()
     {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
-        node->offset = (tok->str[0] - 'a' + 1) * 8;
+
+        // 変数がすでに出てきているかチェック
+        LVar *lvar = find_lvar(tok);
+        if (lvar)
+        {
+            node->offset = lvar->offset;
+        }
+        else
+        {
+            lvar = calloc(1, sizeof(LVar));
+            lvar->next = locals;
+            lvar->name = tok->str;
+            lvar->len = tok->len;
+            lvar->offset = locals ? locals->offset + 8 : 8;
+            node->offset = lvar->offset;
+            locals = lvar;
+        }
         return node;
     }
 

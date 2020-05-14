@@ -157,6 +157,34 @@ struct Node
     int offset;
 };
 
+typedef struct LVar LVar;
+
+struct LVar
+{
+    /**
+     * @brief 次の変数の構造体のポインタ
+     */
+    LVar *next;
+
+    /**
+     * @brief 変数名
+     */
+    char *name;
+
+    /**
+     * @brief 名前の長さ
+     */
+    int len;
+
+    /**
+     * @brief RBPからのオフセット
+     */
+    int offset;
+};
+
+// ローカル変数群
+extern LVar *locals;
+
 /**
  * @brief エラーを報告する。printfと同じ引数を取る。
  * @param fmt フォーマット

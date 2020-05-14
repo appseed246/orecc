@@ -51,5 +51,7 @@ assert 0 "1*(3+1) >= 5;"
 assert 3 "a = 1; b = 2; a + b;"
 assert 1 "x=3;y=2;z=5;x+y == z;"
 
+assert 6 "fo0 = 3; b4r = 3; fo0 + b4r;"
+assert 1 "fo0 = 3; b4r = 3; fo0 == b4r;"
 
 echo OK
