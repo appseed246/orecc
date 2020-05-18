@@ -127,6 +127,13 @@ Token *tokenize(char *p)
             continue;
         }
 
+        if (startswith(p, "return") && !is_alnum(p[6]))
+        {
+            cur = new_token(TK_RESERVED, cur, p, 6);
+            p += 6;
+            continue;
+        }
+
         // 変数の判定
         if (is_alpha(*p))
         {

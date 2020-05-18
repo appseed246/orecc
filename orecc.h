@@ -121,7 +121,12 @@ typedef enum
     /**
      * @brief より大きい(<=)
      */
-    ND_LE
+    ND_LE,
+
+    /**
+     * @brief return
+     */
+    ND_RETURN
 } NodeKind;
 
 typedef struct Node Node;

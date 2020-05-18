@@ -45,6 +45,7 @@ Node *primary();
 
 Node *code[100];
 
+// program = stmt*
 void *program()
 {
     int i = 0;
@@ -55,10 +56,26 @@ void *program()
     code[i] = NULL;
 }
 
+// stmt = expr ";" | "return" expr ";"
 Node *stmt()
 {
-    Node *node = expr();
-    expect(";");
+    Node *node;
+
+    if (consume("return"))
+    {
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_RETURN;
+        node->lhs = expr();
+    }
+    else
+    {
+        node = expr();
+    }
+
+    if (!consume(";"))
+    {
+        error_at(token->str, "';'ではないトークンです");
+    }
     return node;
 }
 

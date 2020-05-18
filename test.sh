@@ -54,4 +54,8 @@ assert 1 "x=3;y=2;z=5;x+y == z;"
 assert 6 "fo0 = 3; b4r = 3; fo0 + b4r;"
 assert 1 "fo0 = 3; b4r = 3; fo0 == b4r;"
 
+assert 42 "return 42;"
+assert 5 "return 5; return 8;"
+assert 7 "aa = 3; bb = 2; return aa + bb * 2;"
+
 echo OK
