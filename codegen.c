@@ -1,5 +1,7 @@
 #include "orecc.h"
 
+int if_label = 0;
+
 void gen_lval(Node *node)
 {
     if (node->kind != ND_LVAR)
@@ -41,6 +43,32 @@ void gen(Node *node)
         printf("    pop rbp\n");
         printf("    ret\n");
         return;
+    case ND_IF:
+    {
+        int seq = if_label++;
+        if (node->els)
+        {
+            gen(node->cond);
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je .Lelse%03d\n", seq);
+            gen(node->then);
+            printf("    jmp .Lend%03d\n", seq);
+            printf(".Lelse%03d:\n", seq);
+            gen(node->els);
+            printf(".Lend%03d:\n", seq);
+        }
+        else
+        {
+            gen(node->cond);
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je .Lend%03d\n", seq);
+            gen(node->then);
+            printf(".Lend%03d:\n", seq);
+        }
+        return;
+    }
     }
 
     gen(node->lhs);

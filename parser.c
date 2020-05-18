@@ -56,7 +56,13 @@ void *program()
     code[i] = NULL;
 }
 
-// stmt = expr ";" | "return" expr ";"
+/**
+ * stmt = expr ";"
+ *      | "return" expr ";"
+ *      | "if" "(" expr ")" stmt ("else" stmt)?
+ *      | "while" "(" expr ")" stmt // TODO
+ *      | "for" "(" expr? ";" expr? ";" expr? ")" stmt // TODO
+ */
 Node *stmt()
 {
     Node *node;
@@ -66,6 +72,19 @@ Node *stmt()
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;
         node->lhs = expr();
+    }
+    else if (consume("if"))
+    {
+        node = new_node(ND_IF, NULL, NULL);
+        expect("(");
+        node->cond = expr();
+        expect(")");
+        node->then = stmt();
+        if (consume("else"))
+        {
+            node->els = stmt();
+        }
+        return node;
     }
     else
     {

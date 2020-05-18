@@ -58,4 +58,9 @@ assert 42 "return 42;"
 assert 5 "return 5; return 8;"
 assert 7 "aa = 3; bb = 2; return aa + bb * 2;"
 
+assert 2 "if (1) return 2; else return 3;"
+assert 3 "if (0) return 2; else return 3;"
+assert 3 "if (1-1) return 2; else return 3;"
+assert 2 "if (2-1) return 2; else return 3;"
+
 echo OK

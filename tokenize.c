@@ -134,6 +134,20 @@ Token *tokenize(char *p)
             continue;
         }
 
+        if (startswith(p, "if") && !is_alnum(p[2]))
+        {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+            continue;
+        }
+
+        if (startswith(p, "else") && !is_alnum(p[4]))
+        {
+            cur = new_token(TK_RESERVED, cur, p, 4);
+            p += 4;
+            continue;
+        }
+
         // 変数の判定
         if (is_alpha(*p))
         {

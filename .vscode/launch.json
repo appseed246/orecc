@@ -11,7 +11,7 @@
             "program": "${workspaceRoot}/orecc",
             "args": [
                 // test case
-                "return 42;"
+                "if (1) return 1; else return 2;"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

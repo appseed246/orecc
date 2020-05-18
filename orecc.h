@@ -126,7 +126,17 @@ typedef enum
     /**
      * @brief return
      */
-    ND_RETURN
+    ND_RETURN,
+
+    /**
+     * @brief if
+     */
+    ND_IF,
+
+    /**
+     * @brief else
+     */
+    ND_ELSE
 } NodeKind;
 
 typedef struct Node Node;
@@ -150,6 +160,21 @@ struct Node
      * @brief 右辺
      */
     Node *rhs;
+
+    /**
+     * @brief [if] 条件式部分のノード
+     */
+    Node *cond;
+
+    /**
+     * @brief [if] 条件式が真のときに実行するコードのノード
+     */
+    Node *then;
+
+    /**
+     * @brief [if] 条件式が偽のときに実行するコードのノード
+     */
+    Node *els;
 
     /**
      * @brief 整数の値。kindがND_NUMの場合に使用。
