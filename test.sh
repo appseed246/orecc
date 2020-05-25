@@ -16,51 +16,51 @@ assert() {
     fi
 }
 
-assert 0 "0;"
-assert 42 "42;"
-assert 21 "5+20-4;"
-assert 41 " 12 + 34 - 5 ;"
-assert 47 '5+6*7;'
-assert 15 '5*(9-6);'
-assert 4 '(3+5)/2;'
-assert 2 '-3+5;'
-assert 13 '+3+5*2;'
+assert 0 'return 0;'
+assert 42 'return 42;'
+assert 21 'return 5+20-4;'
+assert 41 'return 12 + 34 - 5 ;'
+assert 47 'return 5+6*7;'
+assert 15 'return 5*(9-6);'
+assert 4 'return (3+5)/2;'
+assert 2 'return -3+5;'
+assert 13 'return +3+5*2;'
 
-assert 1 " 3 == 3;"
-assert 0 "1 == 2;"
-assert 1 "3+1 == 2+2;"
+assert 1 'return 3 == 3;'
+assert 0 'return 1 == 2;'
+assert 1 'return 3+1 == 2+2;'
 
-assert 1 "1 != 2;"
-assert 0 "2!=2;"
+assert 1 'return 1 != 2;'
+assert 0 'return 2!=2;'
 
-assert 1 "10 < 11;"
-assert 0 "10 < 10;"
-assert 1 "1*(2-2)+3 < (3+1)*1+2;"
+assert 1 'return 10 < 11;'
+assert 0 'return 10 < 10;'
+assert 1 'return 1*(2-2)+3 < (3+1)*1+2;'
 
-assert 1 "2 > 1;"
-assert 0 "1 > 1;"
+assert 1 'return 2 > 1;'
+assert 0 'return 1 > 1;'
 
-assert 1 "2 <= 5;"
-assert 1 "2 <= 2;"
-assert 0 "(3*2) <= 1+1*3;"
+assert 1 'return 2 <= 5;'
+assert 1 'return 2 <= 2;'
+assert 0 'return (3*2) <= 1+1*3;'
 
-assert 1 "55 >= 1;"
-assert 1 "55 >= 55;"
-assert 0 "1*(3+1) >= 5;"
+assert 1 'return 55 >= 1;'
+assert 1 'return 55 >= 55;'
+assert 0 'return 1*(3+1) >= 5;'
 
-assert 3 "a = 1; b = 2; a + b;"
-assert 1 "x=3;y=2;z=5;x+y == z;"
+assert 3 'a = 1; b = 2; return a + b;'
+assert 1 'x=3;y=2;z=5; return x+y == z;'
 
-assert 6 "fo0 = 3; b4r = 3; fo0 + b4r;"
-assert 1 "fo0 = 3; b4r = 3; fo0 == b4r;"
+assert 6 'fo0 = 3; b4r = 3; return fo0 + b4r;'
+assert 1 'fo0 = 3; b4r = 3; return fo0 == b4r;'
 
-assert 42 "return 42;"
-assert 5 "return 5; return 8;"
-assert 7 "aa = 3; bb = 2; return aa + bb * 2;"
+assert 42 'return 42;'
+assert 5 'return 5; return 8;'
+assert 7 'aa = 3; bb = 2; return aa + bb * 2;'
 
-assert 2 "if (1) return 2; else return 3;"
-assert 3 "if (0) return 2; else return 3;"
-assert 3 "if (1-1) return 2; else return 3;"
-assert 2 "if (2-1) return 2; else return 3;"
+assert 2 'if (1) return 2; else return 3;'
+assert 3 'if (0) return 2; else return 3;'
+assert 3 'if (1-1) return 2; else return 3;'
+assert 2 'if (2-1) return 2; else return 3;'
 
 echo OK

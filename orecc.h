@@ -1,9 +1,15 @@
+#define _POSIX_C_SOURCE 200809L
+#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+//
+// tokenize.c
+//
 
 /**
  * @brief トークンの型
@@ -50,17 +56,81 @@ struct Token
     /**
      * @brief kindがTK_NUMの場合、その数値
      */
-    int val;
+    long val;
 
     /**
-     * @brief トークン文字列
+     * @brief トークンの位置
      */
-    char *str;
+    char *loc;
 
     /**
      * @brief トークンの長さ
      */
     int len;
+};
+
+/**
+ * @brief エラーを報告する。printfと同じ引数を取る。
+ * @param fmt フォーマット
+ */
+void error(char *fmt, ...);
+
+/**
+ * @brief エラーの報告とプログラムの終了
+ *
+ * @param tok トークン列のポインタ
+ * @param fmt 可変長フォーマット列
+ */
+void error_tok(Token *tok, char *fmt, ...);
+
+/**
+ * @brief 現在のトークンの文字列がopと一致しているか判定する
+ *
+ * @param tok トークン
+ * @param op 比較対象文字列のポインタ
+ * @return 一致している場合true, それ以外の場合はfalse
+ */
+bool equal(Token *tok, char *op);
+
+/**
+ * @brief 現在のトークンの文字列がopであること判定し、次のトークンのポインタを取得する。
+ * トークン文字列がopでない場合、エラーを表示してプログラムを終了する。
+ *
+ * @param tok 現在のトークン
+ * @param op 比較対象文字列のポインタ
+ * @return Token* 次のトークンのポインタ。
+ */
+Token *skip(Token *tok, char *op);
+
+/**
+ * @brief 文字列をトークン構造体に変換する
+ *
+ * @param input トークン構造体に変換する文字列のポインタ
+ * @return トークン構造体のポインタ
+ */
+Token *tokenize(char *input);
+
+//
+// parser.c
+//
+
+typedef struct Var Var;
+struct Var
+{
+    /**
+     * @brief 次の変数を指すポインタ
+     */
+    Var *next;
+
+    /**
+     * @brief 変数名
+     */
+    char *name;
+
+    /**
+     * @brief RBPからアクセス対象のローカル変数までのバイト数
+     */
+    int offset;
 };
 
 /**
@@ -89,21 +159,6 @@ typedef enum
     ND_DIV,
 
     /**
-     * @brief 整数
-     */
-    ND_NUM,
-
-    /**
-     * @brief 代入(=)
-     */
-    ND_ASSIGN,
-
-    /**
-     * @brief ローカル変数
-     */
-    ND_LVAR,
-
-    /**
      * @brief 等価(==)
      */
     ND_EQ,
@@ -124,6 +179,11 @@ typedef enum
     ND_LE,
 
     /**
+     * @brief 代入(=)
+     */
+    ND_ASSIGN,
+
+    /**
      * @brief return
      */
     ND_RETURN,
@@ -136,7 +196,22 @@ typedef enum
     /**
      * @brief else
      */
-    ND_ELSE
+    ND_ELSE,
+
+    /**
+     * @brief Expresseion Statement
+     */
+    ND_EXPR_STMT,
+
+    /**
+     * @brief 変数
+     */
+    ND_VAR,
+
+    /**
+     * @brief 整数
+     */
+    ND_NUM,
 } NodeKind;
 
 typedef struct Node Node;
@@ -150,6 +225,11 @@ struct Node
      * @brief ノードの型
      */
     NodeKind kind;
+
+    /**
+     * @brief 次のノードを指すポインタ
+     */
+    Node *next;
 
     /**
      * @brief 左辺
@@ -177,14 +257,14 @@ struct Node
     Node *els;
 
     /**
-     * @brief 整数の値。kindがND_NUMの場合に使用。
+     * @brief 変数のポインタ。kindがND_VARの場合に使用。
      */
-    int val;
+    Var *var;
 
     /**
-     * @brief RBPからアクセス対象のローカル変数までのオフセット値。kindがND_LVARの場合に使用。
+     * @brief 整数の値。kindがND_NUMの場合に使用。
      */
-    int offset;
+    long val;
 };
 
 typedef struct LVar LVar;
@@ -212,114 +292,32 @@ struct LVar
     int offset;
 };
 
-// ローカル変数群
-extern LVar *locals;
+typedef struct Function Function;
+struct Function
+{
+    /**
+     * @brief 現在のノード
+     */
+    Node *node;
 
-/**
- * @brief エラーを報告する。printfと同じ引数を取る。
- * @param fmt フォーマット
- */
-void error(char *fmt, ...);
+    /**
+     * @brief ローカル変数群
+     */
+    Var *locals;
 
-/**
- * @brief エラーが発生した文字を示し、エラー内容を報告する。printfと同じ引数を取る。
- * @param loc エラーがある文字の位置を示すポインタ
- * @param fmt フォーマット
- */
-void error_at(char *loc, char *fmt, ...);
+    /**
+     * @brief スタックサイズ(byte)
+     */
+    int stack_size;
+};
 
-/**
- * @brief 次のトークンが期待している記号であるかどうかを判定する。
- * @param op 期待するトークン文字列
- * @return 期待した文字列である場合true, それ以外の場合はfalse
- */
-bool consume(char *op);
+Function *parse(Token *tok);
 
-/**
- * @brief 次のトークンが変数であるかを判定する。
- * @return 次のトークンが変数である場合現在のTokenのポインタ, それ以外の場合はNULLポインタ
- */
-Token *consume_ident();
-
-/**
- * @brief 次のトークンが記号の場合のときには、トークンを1つよみすすめる。
- * それ以外の場合はエラーを報告する。
- * @param op 期待するトークン文字列
- */
-void expect(char *op);
-
-/**
- * @brief 次のトークンが数値の場合、トークンを1つよみ進めてその数値を返す。
- * @return トークン(数値)
- */
-int expect_number();
-
-/**
- * @brief 着目するトークンがEOFかどうか判定する
- * @return EOFの場合true,それ以外の場合false
- */
-bool at_eof();
-
-/**
- * @brief Token構造体を生成する
- *
- * @param kind トークン種別
- * @param cur 現在のトークン構造体
- * @param str トークン文字列
- * @param len トークン文字列の長さ
- * @return Token構造体のポインタ
- */
-Token *new_token(TokenKind kind, Token *cur, char *str, int len);
-
-/**
- * @brief 文字列をトークン構造体に変換する
- *
- * @param p トークン構造体に変換する文字列のポインタ
- * @return トークン構造体のポインタ
- */
-Token *tokenize(char *p);
-
-// 入力プログラム文字列
-extern char *user_input;
-
-// 現在着目しているトークン
-extern Token *token;
-
-/**
- * @brief 文字列pが文字列qから始まることを判定する
- * @param p 検索対象の文字列
- * @param q 検索する文字列 ""で直接文字列を渡す
- * @return pがqから始まる文字列である場合true, それ以外false
- */
-bool startswith(char *p, char *q);
-
-/**
- * @brief ASTの子要素を生成する
- * @param kind ノードの種別
- * @param lhs 左の子ノード
- * @param rhs 右の子ノード
- * @return Nodeのポインタ
- */
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
-
-/**
- * @brief 整数のノードを生成する
- * @param 整数の値
- * @return Nodeのポインタ
- */
-Node *new_node_num(int val);
-
-void *program();
-
-// 複数ステートメントを保持する領域
-extern Node *code[100];
-
-/**
- * @brief 左辺値を評価する。
- */
-void gen_lval(Node *node);
+//
+// codegen.c
+//
 
 /**
  * @brief 抽象構文木を元にアセンブリを出力する
  */
-void gen(Node *node);
+void codegen(Function *prog);
