@@ -114,7 +114,7 @@ static bool is_keyword(Token *tok)
 }
 
 /**
- * @brief TODO
+ * @brief TK_IDENTとして判定した予約語のトークンのkindをTK_RESERVEDに変換する
  *
  * @param tok 先頭のトークンのポインタ
  */

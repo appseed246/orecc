@@ -1,5 +1,12 @@
 #include "orecc.h"
 
+/**
+ * @brief TODO
+ *
+ * @param n
+ * @param align
+ * @return int
+ */
 static int align_to(int n, int align)
 {
     return (n + align - 1) & ~(align - 1);

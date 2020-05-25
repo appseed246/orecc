@@ -4,10 +4,10 @@ static int top;
 static int labelseq = 1;
 
 /**
- * @brief TODO
+ * @brief 指定した番号のレジスタの名前を求める
  *
- * @param idx
- * @return char*
+ * @param idx 求めるレジスタ名のインデックス値
+ * @return レジスタ名
  */
 static char *reg(int idx)
 {
@@ -23,7 +23,9 @@ static void gen_addr(Node *node)
 {
     if (node->kind == ND_VAR)
     {
-        printf("    lea %s, [rbp-%d]\n", reg(top++), node->var->offset); // TODO: what is 'lea'
+        // lea dst [src]
+        // [src] (アドレス値)を dst レジスタにストアする
+        printf("    lea %s, [rbp-%d]\n", reg(top++), node->var->offset);
         return;
     }
 
@@ -37,7 +39,9 @@ static void load(void)
 
 static void store(void)
 {
-    printf("    mov [%s], %s\n", reg(top - 1), reg(top - 2)); // TODO: what is this process?
+    // スタックトップをアドレスした変数にスタックトップから2番目の値を格納する
+    // ND_ASSIGNでlhs, rhsを生成したあとに実行している
+    printf("    mov [%s], %s\n", reg(top - 1), reg(top - 2));
     top--;
 }
 
@@ -49,8 +53,8 @@ static void gen_expr(Node *node)
         printf("    mov %s, %lu\n", reg(top++), node->val);
         return;
     case ND_VAR:
-        gen_addr(node);
-        load();
+        gen_addr(node); // 変数のアドレスを算出
+        load();         // スタックトップの値をアドレスとした変数から値を取得してスタックトップにpush
         return;
     case ND_ASSIGN:
         gen_expr(node->rhs);
