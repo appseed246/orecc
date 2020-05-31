@@ -202,7 +202,7 @@ typedef enum
      * @brief while
      *
      */
-    ND_WHILE,
+    ND_FOR,
 
     /**
      * @brief Expresseion Statement
@@ -248,14 +248,24 @@ struct Node
     Node *rhs;
 
     /**
-     * @brief [if] 条件式部分のノード
+     * @brief [if/while/for] 条件式部分のノード
      */
     Node *cond;
 
     /**
-     * @brief [if] 条件式が真のときに実行するコードのノード
+     * @brief [if/while/for] 条件式が真のときに実行するコードのノード
      */
     Node *then;
+
+    /**
+     * @brief [for] 初期化式部分のノード
+     */
+    Node *init;
+
+    /**
+     * @brief [for] カウントの更新式部のノード
+     */
+    Node *inc;
 
     /**
      * @brief [if] 条件式が偽のときに実行するコードのノード

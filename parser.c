@@ -88,8 +88,8 @@ static long get_number(Token *tok)
  * stmt = expr ";"
  *      | "return" expr ";"
  *      | "if" "(" expr ")" stmt ("else" stmt)?
+ *      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
  *      | "while" "(" expr ")" stmt
- *      | "for" "(" expr? ";" expr? ";" expr? ")" stmt // TODO
  */
 static Node *stmt(Token **rest, Token *tok)
 {
@@ -115,9 +115,40 @@ static Node *stmt(Token **rest, Token *tok)
         return node;
     }
 
+    if (equal(tok, "for"))
+    {
+        Node *node = new_node(ND_FOR);
+        tok = skip(tok->next, "(");
+
+        // 初期化式の有無
+        if (!equal(tok, ";"))
+        {
+            node->init = new_unary(ND_EXPR_STMT, expr(&tok, tok));
+        }
+        tok = skip(tok, ";");
+
+        // 条件式の有無
+        if (!equal(tok, ";"))
+        {
+            node->cond = expr(&tok, tok);
+        }
+        tok = skip(tok, ";");
+
+        // カウンタ変数の更新式の有無
+        if (!equal(tok, ")"))
+        {
+            node->inc = new_unary(ND_EXPR_STMT, expr(&tok, tok));
+        }
+        tok = skip(tok, ")");
+
+        // 実行部
+        node->then = stmt(rest, tok);
+        return node;
+    }
+
     if (equal(tok, "while"))
     {
-        Node *node = new_node(ND_WHILE);
+        Node *node = new_node(ND_FOR);
         tok = skip(tok->next, "(");
         node->cond = expr(&tok, tok);
         tok = skip(tok, ")");
