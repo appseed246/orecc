@@ -2,6 +2,7 @@
 
 static int top;
 static int labelseq = 1;
+static int whileseq = 1;
 
 /**
  * @brief 指定した番号のレジスタの名前を求める
@@ -149,6 +150,18 @@ static void gen_stmt(Node *node)
         gen_expr(node->lhs);
         top--;
         return;
+    case ND_WHILE:
+    {
+        int seq = whileseq++;
+        printf(".L.begin.%d:\n", seq);
+        gen_expr(node->cond);
+        printf("    cmp %s, 0\n", reg(--top));
+        printf("    je  .L.end.%d\n", seq);
+        gen_stmt(node->then);
+        printf("    jmp .L.begin.%d\n", seq);
+        printf(".L.end.%d:\n", seq);
+        return;
+    }
     default:
         error("invalid statement");
     }

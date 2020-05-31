@@ -199,6 +199,12 @@ typedef enum
     ND_ELSE,
 
     /**
+     * @brief while
+     *
+     */
+    ND_WHILE,
+
+    /**
      * @brief Expresseion Statement
      */
     ND_EXPR_STMT,

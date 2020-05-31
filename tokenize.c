@@ -101,7 +101,7 @@ static bool is_alnum(char c)
 static bool is_keyword(Token *tok)
 {
     // Keywords
-    static char *kw[] = {"return", "if", "else"};
+    static char *kw[] = {"return", "if", "else", "while"};
 
     for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++)
     {
